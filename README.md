@@ -138,6 +138,24 @@ deno task test
 ~~~~
 
 
+배포
+----
+
+GitHub Actions workflow는 버전 태그가 push되면 JSR publish를 시도합니다.
+태그 이름은 `deno.json`의 `version`과 정확히 같아야 하며 `v` 접두사는
+허용하지 않습니다.
+
+예:
+
+~~~~ bash
+git tag 0.1.0
+git push origin 0.1.0
+~~~~
+
+처음 한 번은 JSR 패키지 설정에서 이 저장소에 대한 trusted publishing을
+연결해야 합니다.
+
+
 라이선스
 --------
 

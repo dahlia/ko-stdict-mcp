@@ -24,7 +24,8 @@
   },
   "fmt": {
     "exclude": [
-      "**/*.md"
+      "**/*.md",
+      ".github/**/*.yaml"
     ]
   },
   "lint": {

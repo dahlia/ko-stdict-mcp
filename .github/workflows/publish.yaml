@@ -1,0 +1,48 @@
+name: Publish to JSR
+
+on:
+  push:
+    tags:
+    - "*.*.*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v6
+
+    - name: Set up Deno
+      uses: denoland/setup-deno@v2
+
+    - name: Validate tag and package version
+      run: |
+        set -euo pipefail
+
+        if [[ ! "$GITHUB_REF_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+          echo "Tag '$GITHUB_REF_NAME' is not a valid non-prefixed version."
+          echo "Use tags like 0.1.0, not v0.1.0."
+          exit 1
+        fi
+
+        PACKAGE_VERSION="$(deno eval 'const config = JSON.parse(Deno.readTextFileSync("deno.json")); console.log(config.version ?? "");')"
+
+        if [[ -z "$PACKAGE_VERSION" ]]; then
+          echo "deno.json does not contain a version."
+          exit 1
+        fi
+
+        if [[ "$GITHUB_REF_NAME" != "$PACKAGE_VERSION" ]]; then
+          echo "Tag '$GITHUB_REF_NAME' does not match deno.json version '$PACKAGE_VERSION'."
+          exit 1
+        fi
+
+    - name: Run checks
+      run: deno task check
+
+    - name: Publish package
+      run: deno publish
