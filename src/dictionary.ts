@@ -22,6 +22,7 @@ import { iterateDumpItems } from "./source/unpack.ts";
 import type {
   DictionaryStatus,
   ImportSummary,
+  ResolvedPaths,
   ServerOptions,
   StateFile,
 } from "./types.ts";
@@ -36,7 +37,7 @@ export class DictionaryService {
     jsonLinkKey: string;
     userAgent: string;
   };
-  readonly paths;
+  readonly paths: ResolvedPaths;
   #db: SqliteDatabase | null = null;
 
   constructor(options: ServerOptions = {}) {
@@ -54,7 +55,7 @@ export class DictionaryService {
     this.paths = resolvePaths(this.options);
   }
 
-  get db() {
+  get db(): SqliteDatabase {
     if (!this.#db) {
       throw new Error("Dictionary database is not initialized.");
     }
