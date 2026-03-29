@@ -1,0 +1,10 @@
+.DS_Store
+/.deno
+/coverage/
+/tmp/
+/vendor/
+*.log
+
+# Local dictionary data cache
+/data/
+

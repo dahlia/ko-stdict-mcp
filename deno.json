@@ -1,0 +1,35 @@
+{
+  "name": "@hongminhee/ko-stdict-mcp",
+  "version": "0.1.0",
+  "license": "AGPL-3.0-or-later",
+  "exports": {
+    ".": "./mod.ts",
+    "./main": "./main.ts"
+  },
+  "tasks": {
+    "dev": "deno run -A ./main.ts",
+    "init": "deno run -A ./main.ts --init-only",
+    "refresh": "deno run -A ./main.ts --refresh",
+    "check": "deno fmt --check && deno lint && deno test -A",
+    "test": "deno test -A"
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@^1.0.14",
+    "@std/fs": "jsr:@std/fs@^1.0.21",
+    "@std/path": "jsr:@std/path@^1.1.2",
+    "@std/testing": "jsr:@std/testing@^1.0.15",
+    "@zip.js/zip.js": "npm:@zip.js/zip.js@^2.8.23",
+    "@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@^1.28.0",
+    "zod/v4": "npm:zod@^4.1.11/v4"
+  },
+  "fmt": {
+    "exclude": [
+      "**/*.md"
+    ]
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  }
+}
