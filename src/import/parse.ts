@@ -57,11 +57,14 @@ export function appendItemToBatch(
 
   const targetCode = asNumber(item.target_code);
   const wordInfo = asRecord(item.word_info);
-  const word = asString(wordInfo?.word);
+  const sourceWordRaw = asString(wordInfo?.word);
 
-  if (targetCode === null || !wordInfo || !word) {
+  if (targetCode === null || !wordInfo || !sourceWordRaw) {
     return false;
   }
+
+  const explicitSupNo = asString(wordInfo.sup_no);
+  const { word, supNo } = splitHeadwordAndSupNo(sourceWordRaw, explicitSupNo);
 
   const entry: EntryRecord = {
     targetCode,
@@ -69,9 +72,9 @@ export function appendItemToBatch(
     wordSearch: normalizeSearchText(word),
     wordUnit: asString(wordInfo.word_unit),
     wordType: asString(wordInfo.word_type),
-    supNo: asString(wordInfo.sup_no),
+    supNo,
     etymology: asString(wordInfo.origin),
-    sourceWordRaw: word,
+    sourceWordRaw,
   };
   batch.entries.push(entry);
 
@@ -408,6 +411,23 @@ function addSenseMultimedia(
 function firstPronunciation(rawValue: unknown): string | null {
   const first = toArray(rawValue).map((value) => asRecord(value)).find(Boolean);
   return asString(first?.pronunciation);
+}
+
+function splitHeadwordAndSupNo(
+  sourceWordRaw: string,
+  explicitSupNo: string | null,
+): { word: string; supNo: string | null } {
+  if (explicitSupNo) {
+    return { word: sourceWordRaw, supNo: explicitSupNo };
+  }
+
+  const match = /^(.*\D)(\d{2})$/.exec(sourceWordRaw);
+  if (!match) {
+    return { word: sourceWordRaw, supNo: null };
+  }
+
+  const [, word, supNo] = match;
+  return { word, supNo };
 }
 
 function syntheticSenseCode(commPatternCode: string, index: number): number {

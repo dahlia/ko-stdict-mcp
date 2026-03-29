@@ -4,7 +4,7 @@ import type { ResolvedPaths, ServerOptions } from "./types.ts";
 
 export const PACKAGE_NAME = "ko-stdict-mcp";
 export const PACKAGE_VERSION = "0.1.0";
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 export const DEFAULT_DOWNLOAD_URL =
   "https://stdict.korean.go.kr/common/download.do";
 export const DEFAULT_JSON_LINK_KEY = "1538740";

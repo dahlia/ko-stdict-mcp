@@ -295,3 +295,86 @@ Deno.test({
     }
   },
 });
+
+Deno.test({
+  name: "homograph suffixes are split into word and sup_no",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    const tempDir = await Deno.makeTempDir();
+    let server: Deno.HttpServer<Deno.NetAddr> | undefined;
+    const abortController = new AbortController();
+
+    try {
+      const zipBytes = await createDumpZip([
+        makeEntry({
+          targetCode: 4001,
+          word: "인간01",
+          definition: "생각을 하고 언어를 사용하며 사회를 이루어 사는 동물.",
+          pos: "명사",
+          originalLanguage: "人間",
+        }),
+        makeEntry({
+          targetCode: 4002,
+          word: "인간02",
+          definition: "인쇄하여 책을 펴냄. 또는 그 책.",
+          pos: "명사",
+          originalLanguage: "印刊",
+        }),
+      ]);
+
+      server = Deno.serve(
+        { hostname: "127.0.0.1", port: 0, signal: abortController.signal },
+        () =>
+          new Response(toArrayBuffer(zipBytes), {
+            headers: {
+              "content-type": "application/octet-stream",
+              "content-disposition":
+                "attachment;filename=stdict_JSON_20260306.zip",
+            },
+          }),
+      );
+
+      const service = new DictionaryService({
+        dataDir: tempDir,
+        downloadUrl: `http://127.0.0.1:${server.addr.port}/download`,
+      });
+
+      try {
+        await service.initialize();
+
+        const exact = searchEntries(service.db, {
+          query: "인간",
+          match: "exact",
+          fields: ["word", "sup_no", "definition", "hanja"],
+        });
+
+        assertEquals(exact.total, 2);
+        assertEquals(exact.items[0].word, "인간");
+        assertEquals(exact.items[0].sup_no, "01");
+        assertEquals(exact.items[0].hanja, ["人間"]);
+        assertEquals(exact.items[1].word, "인간");
+        assertEquals(exact.items[1].sup_no, "02");
+        assertEquals(exact.items[1].hanja, ["印刊"]);
+
+        const row = service.db.prepare(
+          "SELECT word, sup_no, source_word_raw FROM entries WHERE target_code = ?",
+        ).get(4001) as {
+          word: string;
+          sup_no: string | null;
+          source_word_raw: string;
+        };
+
+        assertEquals(row.word, "인간");
+        assertEquals(row.sup_no, "01");
+        assertEquals(row.source_word_raw, "인간01");
+      } finally {
+        service.close();
+      }
+    } finally {
+      abortController.abort();
+      await server?.finished.catch(() => undefined);
+      await Deno.remove(tempDir, { recursive: true });
+    }
+  },
+});
